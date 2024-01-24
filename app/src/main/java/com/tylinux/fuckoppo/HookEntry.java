@@ -43,8 +43,6 @@ public class HookEntry implements IXposedHookLoadPackage {
                     Object thiz = param.thisObject;
                     thiz.getClass().getField("sNeedShowUsbDialog").set(null, false);
                     thiz.getClass().getMethod("updateUsbNotification", Context.class, int.class).invoke(thiz, (Context) param.args[0], 1);
-                    // 启用文件传输模式
-                    thiz.getClass().getMethod("onUsbSelect", Context.class, int.class).invoke(thiz, (Context) param.args[0], 1);
                     return null;
                 }
             });
