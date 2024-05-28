@@ -1,6 +1,12 @@
 # 移除 OPPO USB 模式选择弹窗及 ADB 安装应用限制
 
-> 核心原理及代码全部来自：https://www.52pojie.cn/thread-1258568-1-1.html 和 https://leadroyal.cn/p/1151/ ，此 repo 仅做整合。
+> 核心原理及代码来自：https://www.52pojie.cn/thread-1258568-1-1.html 和 https://leadroyal.cn/p/1151/ ，此 repo 仅做整合及 Android 12+ 适配
+
+## 测试环境：
+1. ColorOS 7 on Realme V3 5G (Android 10)
+2. ColorOS 12 on OnePlus 8T (Android 12)
+3. ColorOS 13 on OnePlus 8T (Android 13)
+4. ColorOS 14 on OnePlus 12 (Android 14)
 
 ## 主要功能：
 
