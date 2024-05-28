@@ -2,6 +2,9 @@ package com.tylinux.fuckoppo;
 
 import android.content.Context;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -22,6 +25,8 @@ public class HookEntry implements IXposedHookLoadPackage {
     final private static String usbServiceClassBeforeCOS12 = "com.coloros.systemui.notification.usb.UsbService";
 
     final private static String usbServiceClass = "com.oplusos.systemui.notification.usb.UsbService";
+
+    final private static String usbServiceClassCOS14 = "com.oplus.systemui.usb.UsbService";
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
@@ -44,7 +49,7 @@ public class HookEntry implements IXposedHookLoadPackage {
         String className = getExistsClassName(classLoader, packageInstallInterceptManagerClassNameBeforeCOS12, packageInstallInterceptManagerClassName);
 
         if (className == null) {
-            XposedBridge.log("Can not find class: " + packageInstallInterceptManagerClassNameBeforeCOS12 + " or " + packageInstallInterceptManagerClassName + ", abort");
+            XposedBridge.log("Hook oppo usb alert failed, please check the class name");
             return;
         }
 
@@ -64,10 +69,10 @@ public class HookEntry implements IXposedHookLoadPackage {
         ClassLoader classLoader = lpparam.classLoader;
 
         // check if the class exists
-        String className = getExistsClassName(classLoader, usbServiceClassBeforeCOS12, usbServiceClass);
+        String className = getExistsClassName(classLoader, usbServiceClassBeforeCOS12, usbServiceClass, usbServiceClassCOS14);
 
         if (className == null) {
-            XposedBridge.log("Can not find class: " + usbServiceClassBeforeCOS12 + " or " + usbServiceClass + ", abort");
+            XposedBridge.log("Hook oppo usb dialog failed, please check the class name");
             return;
         }
 
@@ -76,8 +81,34 @@ public class HookEntry implements IXposedHookLoadPackage {
             @Override
             protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
                 Object thiz = param.thisObject;
-                thiz.getClass().getField("sNeedShowUsbDialog").set(null, false);
-                thiz.getClass().getMethod("updateUsbNotification", Context.class, int.class).invoke(thiz, (Context) param.args[0], 1);
+                try {
+                    Field field = thiz.getClass().getField("sNeedShowUsbDialog");
+                    if (field != null) {
+                        field.set(thiz, false);
+                        XposedBridge.log("Set sNeedShowUsbDialog to false");
+                    }
+                } catch (NoSuchFieldException e) {
+                    XposedBridge.log("Field not found: " + e.getMessage());
+                }
+                    // for ColorOS 14
+                try {
+                    Field field = thiz.getClass().getDeclaredField("mNeedShowUsbDialog");
+                    if (field != null) {
+                        field.setAccessible(true);
+                        field.set(thiz, false);
+                        XposedBridge.log("Set mNeedShowUsbDialog to false");
+                    }
+                } catch (NoSuchFieldException e) {
+                    XposedBridge.log("Field not found: " + e.getMessage());
+                }
+
+
+                // update Notification
+                Method method = thiz.getClass().getMethod("updateUsbNotification", Context.class, int.class);
+                if (method != null) {
+                    method.invoke(thiz, (Context) param.args[0], 1);
+                    XposedBridge.log("Call updateUsbNotification");
+                }
                 return null;
             }
         });
